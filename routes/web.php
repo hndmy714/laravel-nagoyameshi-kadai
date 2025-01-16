@@ -28,12 +28,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'auth:admin
     Route::get('home', [Admin\HomeController::class, 'index'])->name('home');
     Route::resource('users', Admin\UserController::class)->only(['index', 'show']);
 
-    Route::resource('restaurants', RestaurantController::class)->except(['index', 'create', 'edit']);
-    Route::get('restaurants', [RestaurantController::class, 'index'])->name('restaurants.index');
-    Route::get('restaurants/{restaurant}', [RestaurantController::class, 'show'])->name('restaurants.show');
-    Route::get('restaurants/create', [RestaurantController::class, 'create'])->name('restaurants.create');
+    Route::resource('restaurants', Admin\RestaurantController::class);
     
-    Route::get('restaurants/edit/{id}', [RestaurantController::class, 'edit'])->name('restaurants.edit');
-    Route::get('restaurants/update', [RestaurantController::class, 'update'])->name('restaurants.update');
-    Route::get('restaurants/destroy', [RestaurantController::class, 'destroy'])->name('restaurants.destroy');
 });

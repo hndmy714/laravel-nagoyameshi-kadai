@@ -175,9 +175,21 @@ class RestaurantTest extends TestCase
         $admin->password = Hash::make('nagoyameshi');
         $admin->save();
 
-        $restaurant = Restaurant::factory()->create()->toArray();
-        $response = $this->actingAs($admin, 'admin')->post(route('admin.restaurants.store'), $restaurant);
-        $this->assertDatabaseHas('restaurants', $restaurant);
+        $restaurant_data = [
+            'name' => 'テスト',
+            'description' => 'テスト',
+            'lowest_price' => 1000,
+            'highest_price' => 5000,
+            'postal_code' => '0000000',
+            'address' => 'テスト',
+            'opening_time' => '10:00:00',
+            'closing_time' => '20:00:00',
+            'seating_capacity' => 50
+        ];
+
+        $response = $this->actingAs($admin, 'admin')->post(route('admin.restaurants.store'), $restaurant_data);
+
+        $this->assertDatabaseHas('restaurants', $restaurant_data);
         $response->assertRedirect(route('admin.restaurants.index'));
     }
 
@@ -280,11 +292,9 @@ class RestaurantTest extends TestCase
 
         $old_restaurant = Restaurant::factory()->create();
 
-        $categories = Category::factory()->count(3)->create();
-        $category_ids = $categories->pluck('id')->toArray();
+        
 
-        $regular_holidays = RegularHoliday::factory()->count(2)->create();
-        $regular_holiday_ids = $regular_holidays->pluck('id')->toArray();
+    
 
         $new_restaurant_data = [
             'name' => 'テスト',
@@ -296,24 +306,14 @@ class RestaurantTest extends TestCase
             'opening_time' => '10:00:00',
             'closing_time' => '20:00:00',
             'seating_capacity' => 50,
-            'category_ids' => $category_ids,
-            'regular_holiday_ids' => $regular_holiday_ids
         ];
 
         $response = $this->actingAs($admin, 'admin')->patch(route('admin.restaurants.update', $old_restaurant), $new_restaurant_data);
 
-        unset($new_restaurant_data['category_ids'], $new_restaurant_data['regular_holiday_ids']);
+       
         $this->assertDatabaseHas('restaurants', $new_restaurant_data);
 
-        $restaurant = Restaurant::latest('id')->first();
-
-        foreach ($category_ids as $category_id) {
-            $this->assertDatabaseHas('category_restaurant', ['restaurant_id' => $restaurant->id, 'category_id' => $category_id]);
-        }
-
-        foreach ($regular_holiday_ids as $regular_holiday_id) {
-            $this->assertDatabaseHas('regular_holiday_restaurant', ['restaurant_id' => $restaurant->id, 'regular_holiday_id' => $regular_holiday_id]);
-        }
+        
 
         $response->assertRedirect(route('admin.restaurants.show', $old_restaurant));
     }

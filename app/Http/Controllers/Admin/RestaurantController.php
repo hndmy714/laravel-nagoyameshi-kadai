@@ -37,7 +37,7 @@ class RestaurantController extends Controller
         return view('admin.restaurants.create');
     }
 
-    public function store(RestaurantRequest $request)
+    public function store(Request $request)
     {
         $request->validate([
             'name' => 'required',
@@ -65,9 +65,9 @@ class RestaurantController extends Controller
 
         if ($request->hasFile('image')) {
             $image = $request->file('image')->store('public/restaurants');
-            $restaurant->image_name = basename($image);
+            $restaurant->image = basename($image);
         } else {
-            $restaurant->image_name = '';
+            $restaurant->image = '';
         }
 
         $restaurant->save();
@@ -81,10 +81,8 @@ class RestaurantController extends Controller
         return view('admin.restaurants.edit', compact('restaurant'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Restaurant $restaurant)
     {
-        $restaurant = Restaurant::findOrFail($id);
-
         $request->validate([
             'name' => 'required',
             'image' => 'image|max:2048',
@@ -110,12 +108,12 @@ class RestaurantController extends Controller
 
         if ($request->hasFile('image')) {
             $image = $request->file('image')->store('public/restaurants');
-            $restaurant->image_name = basename($image);
+            $restaurant->image = basename($image);
         }
 
         $restaurant->save();
 
-        return redirect()->route('admin.restaurants.index')->with('flash_message', '店舗を編集しました。');
+        return redirect()->route('admin.restaurants.show', $restaurant)->with('flash_message', '店舗を編集しました。');
     }
 
     public function destroy(Restaurant $restaurant)
