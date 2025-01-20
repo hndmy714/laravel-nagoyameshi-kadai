@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Restaurant;
+use App\Models\Category;
 
 class RestaurantController extends Controller
 {
@@ -34,7 +35,8 @@ class RestaurantController extends Controller
 
     public function create()
     {
-        return view('admin.restaurants.create');
+        $categories = Category::all();
+        return view('admin.restaurants.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -54,6 +56,12 @@ class RestaurantController extends Controller
 
         $restaurant = new Restaurant();
         $restaurant->name = $request->input('name');
+        if ($request->hasFile('image')) {
+            $image = $request->file('image')->store('public/restaurants');
+            $restaurant->image = basename($image);
+        } else {
+            $restaurant->image = '';
+        }
         $restaurant->description = $request->input('description');
         $restaurant->lowest_price = $request->input('lowest_price');
         $restaurant->highest_price = $request->input('highest_price');
@@ -63,14 +71,10 @@ class RestaurantController extends Controller
         $restaurant->closing_time = $request->input('closing_time');
         $restaurant->seating_capacity = $request->input('seating_capacity');
 
-        if ($request->hasFile('image')) {
-            $image = $request->file('image')->store('public/restaurants');
-            $restaurant->image = basename($image);
-        } else {
-            $restaurant->image = '';
-        }
-
         $restaurant->save();
+
+        $category_ids = array_filter($request->input('category_ids'));
+        $restaurant->categories()->sync($category_ids);
 
         return redirect()->route('admin.restaurants.index')->with('flash_message', '店舗を登録しました。');
     }
@@ -78,7 +82,10 @@ class RestaurantController extends Controller
     public function edit($id)
     {
         $restaurant = Restaurant::findOrFail($id);
-        return view('admin.restaurants.edit', compact('restaurant'));
+        $categories = Category::all();
+        $category_ids = $restaurant->categories->pluck('id')->toArray();
+
+        return view('admin.restaurants.edit', compact('restaurant', 'categories', 'category_ids'));
     }
 
     public function update(Request $request, Restaurant $restaurant)
@@ -93,7 +100,8 @@ class RestaurantController extends Controller
             'address' => 'required',
             'opening_time' => 'required|before:closing_time',
             'closing_time' => 'required|after:opening_time',
-            'seating_capacity' => 'required|numeric|min:0'
+            'seating_capacity' => 'required|numeric|min:0',
+            'category_ids' => 'required|array|max:3'
         ]);
 
         $restaurant->name = $request->input('name');
@@ -112,6 +120,9 @@ class RestaurantController extends Controller
         }
 
         $restaurant->save();
+
+        $category_ids = array_filter($request->input('category_ids'));
+        $restaurant->categories()->sync($category_ids);
 
         return redirect()->route('admin.restaurants.show', $restaurant)->with('flash_message', '店舗を編集しました。');
     }
