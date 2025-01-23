@@ -103,6 +103,29 @@ class CompanyTest extends TestCase
             'business' => 'テスト更新',
             'number_of_employees' => 'テスト更新'
         ];
+        $response = $this->patch(route('admin.company.update', $old_company), $new_company_data);
+
+        $this->assertDatabaseMissing('companies', $new_company_data);
+        $response->assertRedirect(route('admin.login'));
+    }
+
+    // ログイン済みの一般ユーザーは会社概要を更新できない
+    public function test_user_cannot_access_admin_company_update()
+    {
+        $user = User::factory()->create();
+
+        $old_company = Company::factory()->create();
+        $new_company_data = [
+            'name' => 'テスト更新',
+            'postal_code' => '1234567',
+            'address' => 'テスト更新',
+            'representative' => 'テスト更新',
+            'establishment_date' => 'テスト更新',
+            'capital' => 'テスト更新',
+            'business' => 'テスト更新',
+            'number_of_employees' => 'テスト更新'
+        ];
+
         $response = $this->actingAs($user)->patch(route('admin.company.update', $old_company), $new_company_data);
 
         $this->assertDatabaseMissing('companies', $new_company_data);
