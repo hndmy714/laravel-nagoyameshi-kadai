@@ -6,6 +6,7 @@ use App\Models\Admin;
 use App\Models\User;
 use App\Models\Restaurant;
 use App\Models\Category;
+use App\Models\RegularHoliday;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -190,6 +191,9 @@ class RestaurantTest extends TestCase
         $categories = Category::factory()->count(3)->create();
         $category_ids = $categories->pluck('id')->toArray();
 
+        $regular_holidays = RegularHoliday::factory();
+        $regular_holiday_ids = $regular_holidays->pluck('id')->toArray();
+
         $restaurant_data = [
             'name' => 'テスト',
             'description' => 'テスト',
@@ -334,6 +338,9 @@ class RestaurantTest extends TestCase
 
         $categories = Category::factory()->count(3)->create();
         $category_ids = $categories->pluck('id')->toArray();
+
+        $regular_holidays = RegularHoliday::factory();
+        $regular_holiday_ids = $regular_holidays->pluck('id')->toArray();
 
         $new_restaurant_data = [
             'name' => 'テスト更新',
