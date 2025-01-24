@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RestaurantController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,3 +40,6 @@ Route::prefix('admin')->name('admin.')->middleware('auth:admin')->group(function
     Route::resource('categories', Admin\CategoryController::class);
 });
 
+Route::group(['middleware' => 'guest:admin'], function () { 
+    Route::get('/', [HomeController::class, 'index'])->name('home');
+});
