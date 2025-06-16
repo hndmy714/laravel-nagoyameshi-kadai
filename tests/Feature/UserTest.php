@@ -63,7 +63,6 @@ class UserTest extends TestCase
         $this->actingAs($user);
 
         $response = $this->get(route('user.edit', ['user' => $user->id]));
-
         $response->assertRedirect(route('user.index'));
     }
 
@@ -117,20 +116,13 @@ class UserTest extends TestCase
     {
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
-        $updateData = [
-            'name' => '名前更新',
-            'kana' => 'ナマエコウシン',
-            'email' => 'testuser@sample.com',
-            'postal_code' => '1234567',
-            'address' => '岐阜県岐阜市',
-            'phone_number' => '09012345678',
-            'birthday' => '1990-01-01',
-            'occupation' => 'エンジニア',
-        ];
+        $updateData = User::factory()->create()->toArray();
 
         $this->actingAs($user);
 
         $response = $this->patch(route('user.update', $otherUser->id), $updateData);
+
+        $this->assertDatabaseMissing('users', $updateData);
 
         $response->assertRedirect(route('user.index'));
     }
@@ -140,23 +132,15 @@ class UserTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $updateData = [
-            'name' => '名前更新',
-            'kana' => 'ナマエコウシン',
-            'email' => 'testuser@sample.com',
-            'postal_code' => '1234567',
-            'address' => '岐阜県岐阜市',
-            'phone_number' => '09012345678',
-            'birthday' => '19900101',
-            'occupation' => 'エンジニア',
-            ];
+        $updateData = User::factory()->create()->toArray();
 
-        $this->actingAs($loggedInUser);
+        $this->actingAs($user);
 
-        $response = $this->patch(route('user.update', $loggedInUser->id), $updateData);
+        $response = $this->patch(route('user.update', $user->id), $updateData);
 
-        $response->assertRedirect(route('user.index')); 
-        $this->assertDatabaseHas('users', array_merge(['id' => $loggedInUser->id], $updateData)); 
+        $this->assertDatabaseHas('users', $updateData);
+
+        $response->assertRedirect(route('user.index'));  
     }
 
     // ログイン済みの管理者は会員情報を更新できない
@@ -173,6 +157,6 @@ class UserTest extends TestCase
 
         $response = $this->patch(route('user.update', $user->id), $updateData);
 
-        $response->assertRedirect(route('home'));$this->assertDatabaseMissing('users', ['id' => $user->id, 'name' => '名前更新']);
+        $response->assertRedirect(route('admin.home'));$this->assertDatabaseMissing('users', ['id' => $user->id, 'name' => '名前更新']);
     }
 }

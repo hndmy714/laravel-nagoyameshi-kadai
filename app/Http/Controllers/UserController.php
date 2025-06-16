@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Http\Requests\UserRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
@@ -50,7 +51,7 @@ class UserController extends Controller
         'occupation' => ['nullable', 'string', 'max:255'],
     ]);
 
-    $user->update($validatedData);
+    $user->update($request->all());
 
     return redirect()->route('user.index')->with('flash_message', '会員情報を編集しました。');
     }
