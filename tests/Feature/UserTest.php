@@ -15,7 +15,7 @@ class UserTest extends TestCase
 
     // indexアクション（会員情報ページ）
     // 未ログインのユーザーは会員情報ページにアクセスできない
-    public function test_guest_cannot_access_user_index() : void
+    public function test_guest_cannot_access_user_index(): void
     {
         $response = $this->get(route('user.index'));
         $response->assertRedirect(route('login'));
@@ -62,7 +62,7 @@ class UserTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = $this->get(route('user.edit', ['user' => $user->id]));
+        $response = $this->get(route('user.edit', $otherUser));
         $response->assertRedirect(route('user.index'));
     }
 
@@ -132,15 +132,42 @@ class UserTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $updateData = User::factory()->create()->toArray();
+        $updateData = [
+            'name' => 'テスト更新',
+            'kana' => 'テストコウシン',
+            'email' => 'test.update@example.com',
+            'postal_code' => '1234567',
+            'address' => 'テスト更新',
+            'phone_number' => '0123456789',
+            'birthday' => '20150319',
+            'occupation' => 'テスト更新'
+        ];
 
-        $this->actingAs($user);
+        $response = $this->actingAs($user)->patch(route('user.update', $user->id), $updateData);
 
-        $response = $this->patch(route('user.update', $user->id), $updateData);
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'name' => 'テスト更新',
+            'kana' => 'テストコウシン',
+            'email' => 'test.update@example.com',
+            'postal_code' => '1234567',
+            'address' => 'テスト更新',
+            'phone_number' => '0123456789',
+            'birthday' => '20150319',
+            'occupation' => 'テスト更新'
+        ]);
 
-        $this->assertDatabaseHas('users', $updateData);
+        $response->assertRedirect(route('user.index'));
 
-        $response->assertRedirect(route('user.index'));  
+        //$updateData = User::factory()->create()->toArray();
+
+        //$this->actingAs($user);
+
+        //$response = $this->patch(route('user.update', $user->id), $updateData);
+
+        //$this->assertDatabaseHas('users', $updateData);
+
+        //$response->assertRedirect(route('user.index'));
     }
 
     // ログイン済みの管理者は会員情報を更新できない
@@ -153,10 +180,12 @@ class UserTest extends TestCase
 
         $this->actingAs($admin, 'admin');
 
-        $user = User::factory()->create();$updateData = ['name' => '名前更新'];
+        $user = User::factory()->create();
+        $updateData = ['name' => '名前更新'];
 
         $response = $this->patch(route('user.update', $user->id), $updateData);
 
-        $response->assertRedirect(route('admin.home'));$this->assertDatabaseMissing('users', ['id' => $user->id, 'name' => '名前更新']);
+        $response->assertRedirect(route('admin.home'));
+        $this->assertDatabaseMissing('users', ['id' => $user->id, 'name' => '名前更新']);
     }
 }
