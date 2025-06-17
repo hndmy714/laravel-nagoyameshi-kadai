@@ -40,7 +40,7 @@ class UserController extends Controller
             return redirect()->route('user.index')->with('error_message', '不正なアクセスです。');
         }
 
-        logger('test', ['foo' => 'bar']);
+
 
 
         $request->validate([
@@ -54,9 +54,7 @@ class UserController extends Controller
             'occupation' => ['nullable', 'string', 'max:255'],
         ]);
 
-        //$user->update($request->all());
 
-        logger('バリデーション後');
 
         $user->name = $request->input('name');
         $user->kana = $request->input('kana');
@@ -67,8 +65,6 @@ class UserController extends Controller
         $user->birthday = $request->input('birthday');
         $user->occupation = $request->input('occupation');
         $user->save();
-
-        logger('保存後');
 
         return redirect()->route('user.index')->with('flash_message', '会員情報を編集しました。');
     }

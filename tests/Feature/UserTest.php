@@ -158,16 +158,6 @@ class UserTest extends TestCase
         ]);
 
         $response->assertRedirect(route('user.index'));
-
-        //$updateData = User::factory()->create()->toArray();
-
-        //$this->actingAs($user);
-
-        //$response = $this->patch(route('user.update', $user->id), $updateData);
-
-        //$this->assertDatabaseHas('users', $updateData);
-
-        //$response->assertRedirect(route('user.index'));
     }
 
     // ログイン済みの管理者は会員情報を更新できない
