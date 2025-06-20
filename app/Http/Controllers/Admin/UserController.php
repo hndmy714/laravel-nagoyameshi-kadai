@@ -2,32 +2,31 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\User;
 
 class UserController extends Controller
 {
     public function index(Request $request)
     {
+        // 検索ボックスに入力されたキーワードを取得する
         $keyword = $request->input('keyword');
-    
-        if ($keyword !== null) {
-            $users = User::where('name', 'LIKE', "%{$keyword}%")
-                ->orWhere('kana', 'LIKE', "%{$keyword}%")
-                ->paginate(15);
-            $total = $users->total();
+
+        // キーワードが存在すれば検索を行い、そうでなければ全件取得する
+        if ($keyword) {
+            $users = User::where('name', 'like', "%{$keyword}%")->orWhere('kana', 'like', "%{$keyword}%")->paginate(15);
         } else {
             $users = User::paginate(15);
-            $total = 0;
-            $keyword = null;
         }
-    
-      return view('admin.users.index',compact('users','total','keyword'));
-    
-      }
-    
-      public function show(User $user){
-        return view('admin.users.show',compact('user'));
-      }
+
+        $total = $users->total();
+
+        return view('admin.users.index', compact('users', 'keyword', 'total'));
+    }
+
+    public function show(User $user)
+    {
+        return view('admin.users.show', compact('user'));
+    }
 }
