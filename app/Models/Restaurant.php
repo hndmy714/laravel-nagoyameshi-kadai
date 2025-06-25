@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Kyslik\ColumnSortable\Sortable;
 
 class Restaurant extends Model
 {
-    use HasFactory;
+    use HasFactory, Sortable;
 
     protected $fillable = [
         'name',
@@ -22,11 +23,13 @@ class Restaurant extends Model
         'seating_capacity',
     ];
 
-    public function categories() {
+    public function categories()
+    {
         return $this->belongsToMany(Category::class);
     }
 
-    public function regular_holidays() {
+    public function regular_holidays()
+    {
         return $this->belongsToMany(RegularHoliday::class)->withTimestamps();
     }
 }
