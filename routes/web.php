@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Middleware\Subscribed;
+use App\Http\Middleware\NotSubscribed;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\SubscriptionController;
 
 
 /*
@@ -48,5 +51,17 @@ Route::group(['middleware' => 'guest:admin'], function () {
 
     Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::resource('user', UserController::class)->only(['index', 'edit', 'update']);
+
+        Route::group(['middleware' => [NotSubscribed::class]], function () {
+            Route::get('subscription/create', [SubscriptionController::class, 'create'])->name('subscription.create');
+            Route::post('subscription', [SubscriptionController::class, 'store'])->name('subscription.store');
+        });
+
+        Route::group(['middleware' => [Subscribed::class]], function () {
+            Route::get('subscription/edit', [SubscriptionController::class, 'edit'])->name('subscription.edit');
+            Route::patch('subscription', [SubscriptionController::class, 'update'])->name('subscription.update');
+            Route::get('subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
+            Route::delete('subscription', [SubscriptionController::class, 'destroy'])->name('subscription.destroy');
+        });
     });
 });
