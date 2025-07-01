@@ -1,0 +1,117 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Review;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Restaurant;
+use App\Models\User;
+
+
+class ReviewController extends Controller
+{
+
+    public function isPremiumUser(User $user)
+    {
+        return $user->subscribed('premium_plan');
+    }
+
+    //indexアクション（レビュー一覧ページ）
+    public function index(Restaurant $restaurant)
+    {
+        $user = Auth::user();
+
+        $isPremium = $this->isPremiumUser($user);
+
+        $query = Review::where('restaurant_id', $restaurant->id)
+            ->orderBy('created_at', 'desc');
+
+        if ($isPremium) {
+            $reviews = $query->paginate(5);
+        } else {
+            $reviews = $query->take(3)->get();
+        }
+
+        return view('reviews.index', compact('restaurant', 'reviews'));
+    }
+
+    //createアクション（レビュー投稿ページ）
+    public function create(Restaurant $restaurant)
+    {
+        return view('reviews.create', compact('restaurant'));
+    }
+
+    //storeアクション（レビュー投稿機能）
+    public function store(Request $request, Restaurant $restaurant)
+    {
+        $request->validate([
+            'score' => ['required', 'numeric', 'between:1,5'],
+            'content' => ['required']
+        ]);
+
+        $review = new Review();
+        $review->score = $request->input('score');
+        $review->content = $request->input('content');
+        $review->restaurant_id = $request->input('restaurant_id');
+        $review->user_id = Auth::user()->id;
+        $review->save();
+
+        return view('reviews.index', $restaurant->id)->with('flash_message', 'レビューを投稿しました。');
+    }
+
+    //editアクション（レビュー編集ページ）
+    public function edit(Restaurant $restaurant, Review $review)
+    {
+        // ログイン中のユーザーのレビューか確認
+        if ($review->user_id !== Auth::id()) {
+            // 一致しない場合一覧ページにリダイレクト
+            return redirect()->route('reviews.index', $restaurant->id)
+                ->with('error_message', '不正なアクセスです。');
+        }
+
+        // レビューとレストランをビューに渡す
+        return view('reviews.edit', compact('restaurant', 'review'));
+    }
+
+    //updateアクション（レビュー更新機能）
+    public function update(Request $request, Restaurant $restaurant, Review $review)
+    {
+        // ログイン中のユーザーのレビューか確認
+        if ($review->user_id !== Auth::id()) {
+            // 一致しない場合一覧ページにリダイレクト
+            return redirect()->route('reviews.index', $restaurant->id)
+                ->with('error_message', '不正なアクセスです。');
+        }
+
+        $request->validate([
+            'score' => ['required', 'numeric', 'between:1,5'],
+            'content' => ['required']
+        ]);
+
+        $review->update([
+            'score' => $request->score,
+            'content' => $request->content,
+        ]);
+
+        return redirect()->route('reviews.index', $restaurant->id)
+            ->with('flash_message', 'レビューを編集しました。');
+    }
+
+    //destroyアクション（レビュー削除機能
+    public function destroy(Request $request, Restaurant $restaurant, Review $review)
+    {
+        $user = Auth::user();
+
+        // レビューのユーザーIDと現在のログインユーザーのIDが一致しない場合
+        if ($review->user_id !== $user->id) {
+            return redirect()->route('reviews.index')->with('error_message', '不正なアクセスです。');
+        } else {
+            // レビューを削除
+            $review->delete();
+
+            // リダイレクトしてフラッシュメッセージを表示
+            return redirect()->route('reviews.index', $restaurant->id)->with('flash_message', 'レビューを削除しました。');
+        }
+    }
+}
