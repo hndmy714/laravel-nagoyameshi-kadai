@@ -50,10 +50,10 @@ Route::group(['middleware' => 'guest:admin'], function () {
 
     Route::resource('restaurants', RestaurantController::class)->only(['index', 'show']);
 
-    Route::resource('restaurants.reviews', ReviewController::class)->only(['index']);
-
     Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::resource('user', UserController::class)->only(['index', 'edit', 'update']);
+
+        Route::resource('restaurants.reviews', ReviewController::class)->only(['index']);
 
         Route::group(['middleware' => [NotSubscribed::class]], function () {
             Route::get('subscription/create', [SubscriptionController::class, 'create'])->name('subscription.create');

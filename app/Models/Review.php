@@ -9,6 +9,8 @@ class Review extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['score', 'content'];
+
     //1つの投稿は1人のユーザーに属する
     public function user()
     {
