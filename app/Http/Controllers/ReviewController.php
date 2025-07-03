@@ -6,17 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\Review;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Restaurant;
-use App\Models\User;
 
 
 class ReviewController extends Controller
 {
-
-    public function isPremiumUser(User $user)
-    {
-        return $user->subscribed('premium_plan');
-    }
-
     //indexアクション（レビュー一覧ページ）
     public function index(Restaurant $restaurant)
     {
@@ -59,8 +52,7 @@ class ReviewController extends Controller
         // ログイン中のユーザーのレビューか確認
         if ($review->user_id !== Auth::id()) {
             // 一致しない場合一覧ページにリダイレクト
-            return redirect()->route('restaurants.reviews.index', ['restaurant' => $restaurant->id])
-                ->with('error_message', '不正なアクセスです。');
+            return redirect()->route('restaurants.reviews.index', $restaurant)->with('error_message', '不正なアクセスです。');
         }
 
         // レビューとレストランをビューに渡す
@@ -82,29 +74,25 @@ class ReviewController extends Controller
             'content' => ['required']
         ]);
 
-        $review->update([
-            'score' => $request->score,
-            'content' => $request->content,
-        ]);
+        $review->score = $request->input('score');
+        $review->content = $request->input('content');
+        $review->save();
 
-        return redirect()->route('reviews.index', $restaurant->id)
-            ->with('flash_message', 'レビューを編集しました。');
+        return redirect()->route('restaurants.reviews.index', $restaurant)->with('flash_message', 'レビューを編集しました。');
     }
 
     //destroyアクション（レビュー削除機能
-    public function destroy(Request $request, Restaurant $restaurant, Review $review)
+    public function destroy(Restaurant $restaurant, Review $review)
     {
-        $user = Auth::user();
-
         // レビューのユーザーIDと現在のログインユーザーのIDが一致しない場合
-        if ($review->user_id !== $user->id) {
-            return redirect()->route('reviews.index')->with('error_message', '不正なアクセスです。');
-        } else {
+        if ($review->user_id !== Auth::id()) {
+            return redirect()->route('restaurants.reviews.index', $restaurant)->with('error_message', '不正なアクセスです。');
+
             // レビューを削除
             $review->delete();
 
             // リダイレクトしてフラッシュメッセージを表示
-            return redirect()->route('reviews.index', $restaurant->id)->with('flash_message', 'レビューを削除しました。');
+            return redirect()->route('restaurants.reviews.index', $restaurant)->with('flash_message', 'レビューを削除しました。');
         }
     }
 }

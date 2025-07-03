@@ -267,7 +267,7 @@ class ReviewTest extends TestCase
             'user_id' => $user->id
         ]);
 
-        $response = $this->actingAs($admin, 'admin')->get(route('restaurants.reviews.edit', [$user, $restaurant, $review]));
+        $response = $this->actingAs($admin, 'admin')->get(route('restaurants.reviews.edit', [$restaurant, $review]));
 
         $response->assertRedirect(route('admin.home'));
     }
@@ -317,12 +317,13 @@ class ReviewTest extends TestCase
         ]);
 
         $updateReview = [
-            'score' => 'updated_score',
-            'content' => 'updated_content'
+            'score' => 5,
+            'content' => 'テスト更新'
         ];
 
         $response = $this->actingAs($user)->patch(route('restaurants.reviews.update', [$restaurant, $review]), $updateReview);
-        $response->assertRedirect(route('restaurants.reviews.index'));
+        $this->assertDatabaseMissing('reviews', $updateReview);
+        $response->assertRedirect(route('restaurants.reviews.index', $restaurant));
     }
 
     //ログイン済みの有料会員は自身のレビューを更新できる
@@ -339,23 +340,18 @@ class ReviewTest extends TestCase
         ]);
 
         $updateReview = [
-            'score' => 'updated_score',
-            'content' => 'updated_content'
+            'score' => 5,
+            'content' => 'テスト更新'
         ];
 
-        $response = $this->actingAs($user)->patch(route('restaurants.reviews.update', [$restaurant, $review], $updateReview));
-        $this->assertDatabaseHas('users', [
-            'score' => 'updated_score',
-            'content' => 'updated_content',
-        ]);
-        $response->assertRedirect(route('restaurants.reviews.index'));
+        $response = $this->actingAs($user)->patch(route('restaurants.reviews.update', [$restaurant, $review]), $updateReview);
+        $this->assertDatabaseHas('reviews', $updateReview);
+        $response->assertRedirect(route('restaurants.reviews.index', $restaurant));
     }
 
     //ログイン済みの管理者はレビューを更新できない
     public function test_admin_cannot_update_review()
     {
-        $user = User::factory()->create();
-
         $admin = new Admin();
         $admin->email = 'admin@example.com';
         $admin->password = Hash::make('nagoyameshi');
@@ -363,17 +359,20 @@ class ReviewTest extends TestCase
 
         $restaurant = Restaurant::factory()->create();
 
+        $user = User::factory()->create();
+
         $review = Review::factory()->create([
             'restaurant_id' => $restaurant->id,
             'user_id' => $user->id
         ]);
 
         $updateReview = [
-            'score' => 'updated_score',
-            'content' => 'updated_content'
+            'score' => 5,
+            'content' => 'テスト更新'
         ];
 
-        $response = $this->actingAs($admin, 'admin')->patch(route('restaurants.reviews.updadte', [$restaurant, $review], $updateReview));
+        $response = $this->actingAs($admin, 'admin')->patch(route('restaurants.reviews.update', [$restaurant, $review]), $updateReview);
+        $this->assertDatabaseMissing('reviews', $updateReview);
         $response->assertRedirect(route('admin.home'));
     }
 
@@ -426,7 +425,7 @@ class ReviewTest extends TestCase
         $response = $this->actingAs($user)->delete(route('restaurants.reviews.destroy', [$restaurant, $review]));
 
         $this->assertDatabaseHas('reviews', ['id' => $review->id]);
-        $response->assertRedirect(route('restaurants.reviews.index'));
+        $response->assertRedirect(route('restaurants.reviews.index', $restaurant));
     }
 
     //ログイン済みの有料会員は自身のレビューを削除できる
@@ -444,7 +443,7 @@ class ReviewTest extends TestCase
 
         $response = $this->actingAs($user)->delete(route('restaurants.reviews.destroy', [$restaurant, $review]));
         $this->assertDatabaseMissing('reviews', ['id' => $review->id]);
-        $response->assertRedirect(route('restaurants.reviews.index'));
+        $response->assertRedirect(route('restaurants.reviews.index', $restaurant));
     }
 
     //ログイン済みの管理者はレビューを削除できない
