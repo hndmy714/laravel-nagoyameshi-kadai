@@ -23,6 +23,11 @@ class Restaurant extends Model
         'seating_capacity',
     ];
 
+    public $sortable = [
+        'rating',
+        'popular'
+    ];
+
     public function categories()
     {
         return $this->belongsToMany(Category::class);
@@ -41,5 +46,15 @@ class Restaurant extends Model
     public function ratingSortable($query, $direction)
     {
         return $query->withAvg('reviews', 'score')->orderBy('reviews_avg_score', $direction);
+    }
+
+    public function reservation()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    public function popularSortable($query, $direction)
+    {
+        return $query->withCount('reservations')->orderBy('reservations_count', $direction);
     }
 }

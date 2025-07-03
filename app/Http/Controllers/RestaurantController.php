@@ -18,10 +18,13 @@ class RestaurantController extends Controller
 
         $price = $request->input('price');
 
+        $sort = $request->input('sort', 'created_at desc');
+
         $sorts = [
             '掲載日が新しい順' => 'created_at desc',
             '価格が安い順' => 'lowest_price asc',
             '評価が高い順' => 'rating desc',
+            '予約数が多い順' => 'popular desc'
         ];
 
         $sort_query = [];
