@@ -44,12 +44,7 @@ class ReservationTest extends TestCase
         $user->newSubscription('premium_plan', 'price_1RdwlxDfDiYheqQcIIfxbFu6')->create('pm_card_visa');
         $restaurant = Restaurant::factory()->create();
 
-        $reservation = [
-            'reserved_datetime' => now(),
-            'number_of_people' => fake()->numberBetween(1, 50),
-        ];
-
-        $response = $this->actingAs($user)->get(route('restaurants.reservations.index', [$restaurant->id, $reservation]));
+        $response = $this->actingAs($user)->get(route('restaurants.reservations.index', $restaurant));
         $response->assertStatus(200);
     }
 
