@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ReservationController;
 
 
 /*
@@ -67,6 +68,8 @@ Route::group(['middleware' => 'guest:admin'], function () {
             Route::delete('subscription', [SubscriptionController::class, 'destroy'])->name('subscription.destroy');
 
             Route::resource('restaurants.reviews', ReviewController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
+
+            Route::resource('restaurants.reservations', ReservationController::class)->only(['index', 'create', 'store', 'destroy']);
         });
     });
 });
