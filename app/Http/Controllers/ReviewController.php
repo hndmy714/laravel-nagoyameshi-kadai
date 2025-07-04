@@ -65,7 +65,7 @@ class ReviewController extends Controller
         // ログイン中のユーザーのレビューか確認
         if ($review->user_id !== Auth::id()) {
             // 一致しない場合一覧ページにリダイレクト
-            return redirect()->route('reviews.index', $restaurant->id)
+            return redirect()->route('restaurants.reviews.index', $restaurant->id)
                 ->with('error_message', '不正なアクセスです。');
         }
 
@@ -87,12 +87,12 @@ class ReviewController extends Controller
         // レビューのユーザーIDと現在のログインユーザーのIDが一致しない場合
         if ($review->user_id !== Auth::id()) {
             return redirect()->route('restaurants.reviews.index', $restaurant)->with('error_message', '不正なアクセスです。');
-
-            // レビューを削除
-            $review->delete();
-
-            // リダイレクトしてフラッシュメッセージを表示
-            return redirect()->route('restaurants.reviews.index', $restaurant)->with('flash_message', 'レビューを削除しました。');
         }
+
+        // レビューを削除
+        $review->delete();
+
+        // リダイレクトしてフラッシュメッセージを表示
+        return redirect()->route('restaurants.reviews.index', $restaurant)->with('flash_message', 'レビューを削除しました。');
     }
 }

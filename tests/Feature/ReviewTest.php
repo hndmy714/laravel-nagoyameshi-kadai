@@ -352,6 +352,8 @@ class ReviewTest extends TestCase
     //ログイン済みの管理者はレビューを更新できない
     public function test_admin_cannot_update_review()
     {
+        $user = User::factory()->create();
+
         $admin = new Admin();
         $admin->email = 'admin@example.com';
         $admin->password = Hash::make('nagoyameshi');
