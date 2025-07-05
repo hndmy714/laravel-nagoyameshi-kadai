@@ -12,6 +12,7 @@ use App\Models\Reservation;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
+use Illuminate\Support\Carbon;
 
 class ReservationTest extends TestCase
 {
@@ -21,9 +22,16 @@ class ReservationTest extends TestCase
     //未ログインのユーザーは会員側の予約一覧ページにアクセスできない
     public function test_guest_cannot_access_reservation_index()
     {
+        $user = User::factory()->create();
+
         $restaurant = Restaurant::factory()->create();
 
-        $response = $this->get(route('restaurants.reservations.index', $restaurant));
+        $reservation = Reservation::factory()->create([
+            'restaurant_id' => $restaurant->id,
+            'user_id' => $user->id
+        ]);
+
+        $response = $this->get(route('restaurants.reservations.index', $reservation));
         $response->assertRedirect(route('login'));
     }
 
@@ -88,10 +96,10 @@ class ReservationTest extends TestCase
         $user->newSubscription('premium_plan', 'price_1RdwlxDfDiYheqQcIIfxbFu6')->create('pm_card_visa');
         $restaurant = Restaurant::factory()->create();
 
-        $reservation = [
-            'reserved_datetime' => now(),
-            'number_of_people' => fake()->numberBetween(1, 50),
-        ];
+        $reservation = Reservation::factory()->create([
+            'restaurant_id' => $restaurant->id,
+            'user_id' => $user->id
+        ]);
 
         $response = $this->actingAs($user)->get(route('restaurants.reservations.create', [$restaurant->id, $reservation]));
         $response->assertStatus(200);
@@ -154,16 +162,20 @@ class ReservationTest extends TestCase
         $user->newSubscription('premium_plan', 'price_1RdwlxDfDiYheqQcIIfxbFu6')->create('pm_card_visa');
         $restaurant = Restaurant::factory()->create();
 
-        $reservation = new Reservation();
-        $reservation->reserved_datetime = now();
-        $reservation->number_of_people = fake()->numberBetween(1, 50);
-        $reservation->restaurant_id = $restaurant->id;
-        $reservation->user_id = $user->id;
-        $reservation->save();
+        $reservation = Reservation::factory()->create([
+            'restaurant_id' => $restaurant->id,
+            'user_id' => $user->id
+        ]);
 
-        $response = $this->actingAs($user)->post(route('restaurants.reservations.store', [$restaurant->id, $reservation]));
+        $now = Carbon::now();
+        $response = $this->actingAs($user)->post(route('restaurants.reservations.store', $restaurant), [
+            'reservation_date' => $now->format('Y-m-d'),
+            'reservation_time' => $now->format('H:i'),
+            'number_of_people' => 2,
+        ]);
         $response->assertStatus(200);
     }
+
     //ログイン済みの管理者は予約できない
     public function test_admin_cannot_access_reservation_store()
     {
@@ -258,7 +270,7 @@ class ReservationTest extends TestCase
         $reservation->save();
 
         $response = $this->actingAs($user)->delete(route('restaurants.reservations.destroy', [$restaurant, $reservation]));
-        $response->assertStatus(200);
+        $response->assertRedirect(route('restaurants.reservations.index'));
     }
     //ログイン済みの管理者は予約をキャンセルできない
     public function test_admin_cannot_delete_reservation_destroy()
