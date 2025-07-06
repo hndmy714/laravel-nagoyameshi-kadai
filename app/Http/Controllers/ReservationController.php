@@ -39,7 +39,7 @@ class ReservationController extends Controller
         $reservation->reserved_datetime = $request->input('reservation_date') . ' ' . $request->input('reservation_time');
         $reservation->number_of_people = $request->input('number_of_people');
         $reservation->restaurant_id = $restaurant->id;
-        $reservation->user_id = $request->user()->id();
+        $reservation->user_id = $request->user()->id;
         $reservation->save();
 
         return redirect()->route('reservations.index')->with('flash_message', '予約が完了しました。');
