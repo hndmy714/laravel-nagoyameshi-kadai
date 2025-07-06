@@ -162,18 +162,14 @@ class ReservationTest extends TestCase
         $user->newSubscription('premium_plan', 'price_1RdwlxDfDiYheqQcIIfxbFu6')->create('pm_card_visa');
         $restaurant = Restaurant::factory()->create();
 
-        $reservation = Reservation::factory()->create([
-            'restaurant_id' => $restaurant->id,
-            'user_id' => $user->id
+        $response = $this->actingAs($user)->post(route('restaurants.reservations.store', $restaurant), [
+            'reservation_date' => '2024-01-01',
+            'reservation_time' => '00:00',
+            'number_of_people' => 10,
         ]);
 
-        $now = Carbon::now();
-        $response = $this->actingAs($user)->post(route('restaurants.reservations.store', $restaurant), [
-            'reservation_date' => $now->format('Y-m-d'),
-            'reservation_time' => $now->format('H:i'),
-            'number_of_people' => 2,
-        ]);
-        $response->assertStatus(200);
+        $this->assertDatabaseHas('reservations', ['reserved_datetime' => '2024-01-01 00:00', 'number_of_people' => 10]);
+        $response->assertRedirect(route('reservations.index'));
     }
 
     //ログイン済みの管理者は予約できない
@@ -244,15 +240,14 @@ class ReservationTest extends TestCase
         $restaurant = Restaurant::factory()->create();
         $otherUser = User::factory()->create();
 
-        $reservation = new Reservation();
-        $reservation->reserved_datetime = now();
-        $reservation->number_of_people = fake()->numberBetween(1, 50);
-        $reservation->restaurant_id = $restaurant->id;
-        $reservation->user_id = $otherUser->id;
-        $reservation->save();
+        $reservation = Reservation::factory()->create([
+            'restaurant_id' => $restaurant->id,
+            'user_id' => $otherUser->id
+        ]);
 
-        $response = $this->actingAs($user)->delete(route('restaurants.reservations.destroy', [$restaurant, $reservation]));
-        $response->assertRedirect(route('restaurants.reservations.index'));
+        $response = $this->actingAs($user)->delete(route('reservations.destroy', $reservation));
+        $this->assertDatabaseHas('reservations', ['id' => $reservation->id]);
+        $response->assertRedirect(route('reservations.index'));
     }
 
     //ログイン済みの有料会員は自身の予約をキャンセルできる
@@ -262,15 +257,15 @@ class ReservationTest extends TestCase
         $user->newSubscription('premium_plan', 'price_1RdwlxDfDiYheqQcIIfxbFu6')->create('pm_card_visa');
         $restaurant = Restaurant::factory()->create();
 
-        $reservation = new Reservation();
-        $reservation->reserved_datetime = now();
-        $reservation->number_of_people = fake()->numberBetween(1, 50);
-        $reservation->restaurant_id = $restaurant->id;
-        $reservation->user_id = $user->id;
-        $reservation->save();
+        $reservation = Reservation::factory()->create([
+            'restaurant_id' => $restaurant->id,
+            'user_id' => $user->id
+        ]);
 
-        $response = $this->actingAs($user)->delete(route('restaurants.reservations.destroy', [$restaurant, $reservation]));
-        $response->assertRedirect(route('restaurants.reservations.index'));
+        $response = $this->actingAs($user)->delete(route('reservations.destroy', $reservation));
+
+        $this->assertDatabaseMissing('reservations', ['id' => $reservation->id]);
+        $response->assertRedirect(route('reservations.index'));
     }
     //ログイン済みの管理者は予約をキャンセルできない
     public function test_admin_cannot_delete_reservation_destroy()
