@@ -30,13 +30,15 @@ class FavoriteController extends Controller
     //destroyアクション（お気に入り解除機能）
     public function destroy($restaurant_id)
     {
-        $user = Auth::user();
-
-        if ($user->isAdmin() || !$user->subscribed('premium_plan')) {
-            return back()->with('flash_message', 'お気に入りを解除する権限がありません。');
+        $user = Auth::user(); // 現在ログイン中のユーザーを取得
+        if ($user->is_admin) {
+            return redirect()->route('admin.login');
         }
+        if ($user->subscribed('premium_plan')) {
 
-        $user->favorite_restaurants()->detach($restaurant_id);
-        return back()->with('flash_message', 'お気に入りを解除しました。');
+            $user->favorite_restaurants()->detach($restaurant_id);
+
+            return redirect()->back()->with('flash_message', 'お気に入りを解除しました！');
+        }
     }
 }

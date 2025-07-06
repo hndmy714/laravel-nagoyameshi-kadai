@@ -71,8 +71,14 @@ Route::group(['middleware' => 'guest:admin'], function () {
             Route::resource('restaurants.reviews', ReviewController::class)->only(['create', 'store', 'edit', 'update', 'destroy']);
 
             Route::resource('restaurants.reservations', ReservationController::class)->only(['index', 'create', 'store', 'destroy']);
+            Route::get('reservations', [ReservationController::class, 'index'])->name('reservations.index');
+            Route::get('restaurants/{restaurant}/reservations/create', [ReservationController::class, 'create'])->name('restaurants.reservations.create');
+            Route::post('restaurants/{restaurant}/reservations', [ReservationController::class, 'store'])->name('restaurants.reservations.store');
+            Route::delete('reservations/{reservation}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
 
-            Route::resource('favorites', FavoriteController::class)->only(['index', 'store', 'destroy']);
+            Route::get('favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+            Route::post('favorites/{restaurant_id}', [FavoriteController::class, 'store'])->name('favorites.store');
+            Route::delete('favorites/{restaurant_id}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
         });
     });
 });

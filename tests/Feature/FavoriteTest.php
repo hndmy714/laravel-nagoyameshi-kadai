@@ -44,7 +44,7 @@ class FavoriteTest extends TestCase
         $user->newSubscription('premium_plan', 'price_1RdwlxDfDiYheqQcIIfxbFu6')->create('pm_card_visa');
         $restaurant = Restaurant::factory()->create();
 
-        $response = $this->actingAs($user)->get(route('favorites.index', $restaurant));
+        $response = $this->actingAs($user)->get(route('favorites.index'));
         $response->assertStatus(200);
     }
 
@@ -91,7 +91,7 @@ class FavoriteTest extends TestCase
 
 
 
-        $response = $this->actingAs($user)->post(route('favorite.store', ['restaurant_id' => $restaurant->id]), [
+        $response = $this->actingAs($user)->post(route('favorites.store', ['restaurant_id' => $restaurant->id]), [
             'restaurant_id' => $restaurant->id,
         ]);
 
@@ -143,7 +143,7 @@ class FavoriteTest extends TestCase
         $user->newSubscription('premium_plan', 'price_1RdwlxDfDiYheqQcIIfxbFu6')->create('pm_card_visa');
         $restaurant = Restaurant::factory()->create();
 
-        $response = $this->actingAs($user)->delete(route('favorite.store', ['restaurant_id' => $restaurant->id]), [
+        $response = $this->actingAs($user)->delete(route('favorites.store', ['restaurant_id' => $restaurant->id]), [
             'restaurant_id' => $restaurant->id,
         ]);
 
