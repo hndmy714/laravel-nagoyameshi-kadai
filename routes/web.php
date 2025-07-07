@@ -13,6 +13,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\TermController;
 
 
 /*
@@ -56,6 +58,11 @@ Route::group(['middleware' => 'guest:admin'], function () {
         Route::resource('user', UserController::class)->only(['index', 'edit', 'update']);
 
         Route::resource('restaurants.reviews', ReviewController::class)->only(['index']);
+
+
+        Route::get('/company', [CompanyController::class, 'index'])->name('company.index');
+
+        Route::get('/terms', [TermController::class, 'index'])->name('terms.index');
 
         Route::group(['middleware' => [NotSubscribed::class]], function () {
             Route::get('subscription/create', [SubscriptionController::class, 'create'])->name('subscription.create');
