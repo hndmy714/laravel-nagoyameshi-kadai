@@ -17,7 +17,7 @@ class CompanyTest extends TestCase
     //未ログインのユーザーは会員側の会社概要ページにアクセスできる
     public function test_guest_can_access_company_index()
     {
-        Company::factory()->create();
+        $company = Company::factory()->create();
 
         $response = $this->get(route('company.index'));
         $response->assertStatus(200);
@@ -27,6 +27,7 @@ class CompanyTest extends TestCase
     public function test_user_can_access_company_index()
     {
         $user = User::factory()->create();
+        $company = Company::factory()->create();
 
         $response = $this->actingAs($user)->get(route('company.index'));
         $response->assertStatus(200);

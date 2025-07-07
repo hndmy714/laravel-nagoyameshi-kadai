@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Admin;
+use App\Models\Term;
 use Illuminate\Support\Facades\Hash;
 
 class TermTest extends TestCase
@@ -16,6 +17,8 @@ class TermTest extends TestCase
     //未ログインのユーザーは会員側の利用規約ページにアクセスできる
     public function test_guest_can_access_term_index()
     {
+        $term = Term::factory()->create();
+
         $response = $this->get(route('terms.index'));
         $response->assertStatus(200);
     }
@@ -24,6 +27,7 @@ class TermTest extends TestCase
     public function test_user_can_access_term_index()
     {
         $user = User::factory()->create();
+        $term = Term::factory()->create();
 
         $response = $this->actingAs($user)->get(route('terms.index'));
         $response->assertStatus(200);
